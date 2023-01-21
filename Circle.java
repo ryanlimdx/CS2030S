@@ -34,7 +34,9 @@ class Circle {
    */
   public boolean contains(Point p) {
     // TODO
-    return false;
+
+    boolean checkContains = ((p.getX() - c.getX()) * (p.getX() - c.getX()) + (p.getY() - c.getY()) * (p.getY() - c.getY())) <= r * r;
+    return checkContains;
   }
 
   /**

@@ -14,8 +14,26 @@ import java.util.Scanner;
 
 class Lab0 {
 
-  // TODO estimatePi(int numOfPoints, int seed) {
-  // }
+  // TODO 
+  public static double estimatePi(int numOfPoints, int seed) {
+    double numOfPointsInCircle = 0;
+    int currPoint = 1;
+    Point p = new Point(0.5, 0.5);
+    Circle c = new Circle(p, 0.5);
+    RandomPoint.setSeed(seed);
+
+    while (currPoint <= numOfPoints) {
+        RandomPoint rp = new RandomPoint(0.0, 1.0, 0.0, 1.0);
+
+        if (c.contains(rp)) {
+            numOfPointsInCircle ++;
+        }
+
+        currPoint ++;
+    }
+
+    return 4 * numOfPointsInCircle / numOfPoints;
+  }
 
   public static void main(String[] args) {
     Scanner sc = new Scanner(System.in);
