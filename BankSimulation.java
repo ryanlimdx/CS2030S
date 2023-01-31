@@ -3,20 +3,18 @@ import java.util.Scanner;
 /**
  * This class implements a bank simulation.
  *
- * @author Wei Tsang
- * @version CS2030S AY21/22 Semester 2
- */ 
+ * @author Ryan Lim Ding Xuan (Group 10J)
+ */
+
 class BankSimulation extends Simulation {
-  /** 
-   * The availability of counters in the bank. 
-   */
-  public boolean[] available;
+  // The bank to be simulated. 
+  private Bank bank;
 
   /** 
    * The list of customer arrival events to populate
    * the simulation with.
    */
-  public Event[] initEvents;
+  private Event[] initEvents;
 
   /** 
    * Constructor for a bank simulation. 
@@ -29,19 +27,14 @@ class BankSimulation extends Simulation {
    */
   public BankSimulation(Scanner sc) {
     initEvents = new Event[sc.nextInt()];
-    int numOfCounters = sc.nextInt();
-
-    available = new boolean[numOfCounters];
-    for (int i = 0; i < numOfCounters; i++) {
-      available[i] = true;
-    }
-
+    bank = new Bank(sc.nextInt());
+  
     int id = 0;
     while (sc.hasNextDouble()) {
       double arrivalTime = sc.nextDouble();
       double serviceTime = sc.nextDouble();
-      initEvents[id] = new BankEvent(BankEvent.ARRIVAL, 
-          arrivalTime, id, serviceTime, available);
+      Customer customer = new Customer(id, arrivalTime, serviceTime);
+      initEvents[id] = new Arrival(arrivalTime, customer, bank);
       id += 1;
     }
   }
