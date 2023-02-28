@@ -5,7 +5,23 @@
  * CS2030S Lab 4
  * AY22/23 Semester 2
  *
- * @author Put Your Name (Lab Group)
+ * @author Ryan Lim Ding Xuan (10J)
  */
 
+public class LongerThan implements BooleanCondition<String> {
+  
+  private int len;
 
+  public LongerThan(int len) {
+    this.len = len;
+  }
+
+  @Override
+  public boolean test(String testString) {
+    if (testString.length() > this.len) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+}
