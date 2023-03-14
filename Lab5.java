@@ -5,21 +5,27 @@ import java.util.Map;
 class Lab5 {
   public static String getGrade(String student, String module, String assessment,
       Map<String, Map<String, Map<String, String>>> db) {
-    Map<String, Map<String, String>> std = db.get(student);
-    if (std == null) {
-      return "No such entry";
-    } else {
-      Map<String, String> mod = std.get(module);
-      if (mod == null) {
-        return "No such entry";
-      } else {
-        String grade = mod.get(assessment);
-        if (grade == null) {
-          return "No such entry";
-        }
-        return grade;
+    // Transformer1
+    Transformer<Map<String, Map<String, String>>, Maybe<Map<String, String>>> extractMods
+        = new Transformer<>() {
+          @Override
+          public Maybe<Map<String, String>> transform(Map<String, Map<String, String>> mods) {
+            return Maybe.of(mods.get(module));
+          }
+        };
+
+    // Transformer2
+    Transformer<Map<String, String>, Maybe<String>> extractAssessment = new Transformer<>() {
+      @Override
+      public Maybe<String> transform(Map<String, String> assessments) {
+        return Maybe.of(assessments.get(assessment));
       }
-    }
+    };
+
+    return Maybe.of(db.get(student))
+      .flatMap(extractMods)
+      .flatMap(extractAssessment)
+      .orElse("No such entry");
   }
 
   /*
