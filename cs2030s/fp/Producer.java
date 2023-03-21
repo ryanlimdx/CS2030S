@@ -2,11 +2,12 @@ package cs2030s.fp;
 
 /**
  * Represent a function that produce a value.
- * CS2030S Lab 5
+ * CS2030S Lab 6
  * AY22/23 Semester 2
  *
  * @param <T> The type of the value produced.
  */
+
 @FunctionalInterface
 public interface Producer<T> {
   /**

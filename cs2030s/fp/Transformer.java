@@ -2,7 +2,7 @@ package cs2030s.fp;
 
 /**
  * Represent a function that transforms one value into another, possible of different types.
- * CS2030S Lab 5
+ * CS2030S Lab 6
  * AY22/23 Semester 2
  *
  * @param <U> The type of the input value
