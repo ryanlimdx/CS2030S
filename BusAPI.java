@@ -5,6 +5,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 
 /**
@@ -13,7 +14,7 @@ import java.util.concurrent.CompletionException;
  * - bus services that serve a given bus stop 
  * - bus stop visited by a bus service.
  *
- * @author: Ooi Wei Tsang
+ * @author: Ryan Lim Ding Xuan (10J)
  * @version: CS2030S AY22/23 Semester 2, Lab 8
  **/
 class BusAPI {
@@ -39,25 +40,34 @@ class BusAPI {
    * @return The HTTP resposne body, or an empty string if the 
    *     query fails.
    */
-  private static String httpGet(String url) {
+  private static CompletableFuture<String> httpGet(String url) {
     HttpClient client = HttpClient.newBuilder()
         .build();
     HttpRequest request = HttpRequest.newBuilder()
         .uri(URI.create(url))
         .build();
-    HttpResponse<String> response;
+    CompletableFuture<HttpResponse<String>> response;
 
-    try {
-      response = client.send(request, BodyHandlers.ofString()); // TODO 
-    } catch (IOException | InterruptedException e) {
-      throw new CompletionException(e);
-    }
+    response = client.sendAsync(request, BodyHandlers.ofString())
+      .handle((val, e) -> {
+        if (e != null) {
+          throw new CompletionException(e);
+        } else {
+          return val;
+        }
+      }
+      );
 
-    if (response.statusCode() != 200) {
-      System.out.println(response + " " + response.statusCode());
-      return "";
+    return response.thenApply(rsp -> { 
+      if (rsp.statusCode() != 200) {
+        System.out.println(rsp + " " + rsp.statusCode());
+        return "";
+      } else {
+        return rsp.body();
+      }
     }
-    return response.body();
+    );
+
   }
 
   /**
@@ -67,7 +77,7 @@ class BusAPI {
    *     the bus stops that are serviced at this bus.  Return an empty
    *     string if something go wrong.
    */ 
-  public static String getBusStopsServedBy(String serviceId) {
+  public static CompletableFuture<String> getBusStopsServedBy(String serviceId) {
     return httpGet(BUS_SERVICE_API + serviceId);
   }
 
@@ -78,7 +88,7 @@ class BusAPI {
    *     the bus services that stopped at this bus stop; an empty 
    *     string if the API query failed.
    */ 
-  public static String getBusServicesAt(String stopId) {
+  public static CompletableFuture<String> getBusServicesAt(String stopId) {
     return httpGet(BUS_STOP_API + stopId);
   }
 }

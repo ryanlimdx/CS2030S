@@ -1,5 +1,6 @@
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Encapsulates the result of a query: for a bus stop and a search string,
@@ -14,7 +15,7 @@ import java.util.Set;
 class BusRoutes {
   final BusStop stop;
   final String name;
-  final Map<BusService, Set<BusStop>> services;
+  final Map<BusService, CompletableFuture<Set<BusStop>>> services;
 
   /**
    * Constructor for creating a bus route.
@@ -22,7 +23,7 @@ class BusRoutes {
    * @param name The second bus stop.
    * @param services The set of bus services between the two stops.
    */
-  BusRoutes(BusStop stop, String name, Map<BusService, Set<BusStop>> services) {
+  BusRoutes(BusStop stop, String name, Map<BusService, CompletableFuture<Set<BusStop>>> services) {
     this.stop = stop;
     this.name = name;
     this.services = services;
@@ -34,15 +35,24 @@ class BusRoutes {
    *     bus stop id and search string.  The remaining line contains 
    *     the bus services and matching stops served.
    */
-  public String description() {
+  public CompletableFuture<String> description() {
     String result = "Search for: " + this.stop + " <-> " + name + ":\n";
     result += "From " +  this.stop + "\n";
 
+    CompletableFuture<String> desc = CompletableFuture.completedFuture(result);
+
     for (BusService service : services.keySet()) {
-      Set<BusStop> stops = services.get(service);
-      result += describeService(service, stops);
+      CompletableFuture<Set<BusStop>> stopsSet = services.get(service);
+      CompletableFuture<String> stopsDesc = stopsSet
+          .thenApply(stops -> describeService(service, stops));
+      
+      desc = desc.thenCombine(
+          stopsDesc,
+          (res, nextStopsSet) -> res + nextStopsSet
+          );
     }
-    return result;
+
+    return desc;
   }
 
   /**
@@ -58,9 +68,9 @@ class BusRoutes {
       return "";
     } 
     return stops.stream()
-        .filter(stop -> stop != this.stop) 
-        .reduce("- Can take " + service + " to:\n",
-            (str, stop) -> str += "  - " + stop + "\n",
-            (str1, str2) -> str1 + str2);
+      .filter(stop -> stop != this.stop) 
+      .reduce("- Can take " + service + " to:\n",
+          (str, stop) -> str += "  - " + stop + "\n",
+          (str1, str2) -> str1 + str2);
   }
 }

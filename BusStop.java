@@ -1,5 +1,6 @@
 import java.util.Scanner;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -16,7 +17,7 @@ class BusStop {
 
   /** A human friendly name. */
   private final String name;
-  
+
   /**
    * Constructor for this bus stop.
    * @param   id     The id of this bus stop.
@@ -50,20 +51,25 @@ class BusStop {
    * a set.  Query the web server.
    * @return A set of BusService that serve this bus stop.
    */
-  public Set<BusService> getBusServices() {
+  public CompletableFuture<Set<BusService>> getBusServices() {
     // Thread.sleep(200);
     // bus services that visit this stop
 
-    Scanner sc = new Scanner(BusAPI.getBusServicesAt(stopId));
-    Set<BusService> busServices = sc
-        .useDelimiter("\n")
-        .tokens()
-        .skip(1) // skip first line
-        .flatMap(line -> Stream.of(line.split(",")))
-        .map(id -> new BusService(id))
-        .collect(Collectors.toSet());
-    sc.close();
-    return busServices;
+    return BusAPI.getBusServicesAt(stopId).thenApply(busSvc -> {
+      Scanner sc = new Scanner(busSvc);
+
+      Set<BusService> busServices = sc
+          .useDelimiter("\n")
+          .tokens()
+          .skip(1) // skip first line
+          .flatMap(line -> Stream.of(line.split(",")))
+          .map(id -> new BusService(id))
+          .collect(Collectors.toSet());
+      sc.close();
+      return busServices;
+    }
+    );
+
   }
 
   /**

@@ -2,7 +2,9 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Scanner;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * This program finds different ways one can travel by bus (with a bit 
@@ -20,18 +22,33 @@ public class Main {
    */
   public static void main(String[] args) {
     Instant start = Instant.now();
+    ArrayList<CompletableFuture<String>> list = new ArrayList<>(); 
+
     try {
       Scanner sc = createScanner(args);
       while (sc.hasNext()) {
         BusStop srcId = new BusStop(sc.next());
         String searchString = sc.next();
-        System.out.println(BusSg.findBusServicesBetween(srcId, searchString).description());
+        CompletableFuture<String> route = BusSg.findBusServicesBetween(srcId, searchString)
+            .thenCompose(busRoutes -> busRoutes.description());
+
+        list.add(route);
       }
       sc.close();
+
+      CompletableFuture<?>[] arrayStrings = new CompletableFuture<?>[list.size()];
+      arrayStrings = list.toArray(arrayStrings);
+      CompletableFuture.allOf(arrayStrings).join();
+
+      for (CompletableFuture<?> route : arrayStrings) {
+        route.thenAccept(System.out::println);
+      }
+
     } catch (FileNotFoundException exception) {
       System.err.println("Unable to open file " + args[0] + " "
           + exception);
     }
+
     Instant stop = Instant.now();
     System.out.printf("Took %,dms\n", Duration.between(start, stop).toMillis());
   }
